@@ -1,26 +1,5 @@
 import re
 
-flag = True
-ANS = 0
-lineas_error = []
-lista_problemas = []
-""" 
-def suma(a,b):
-    s = int(a) + int(b)
-    return s
-
-def resta(a,b):
-    s = int(a) - int(b)
-    return s
-
-def producto(a,b):
-    s = int(a) * int(b)
-    return s
-
-def division(a,b):  #b != 0 en revision error
-    s = int(a) // int(b)
-    return s
- """
 def list_to_str(lista):
     string = ""
     i = 0
@@ -34,9 +13,9 @@ def resolver_prioridad_1(texto): #resuelve operaciones "*" y "//" en texto
     i = 0   #texto llega .split()
     while texto[i] != texto[-1]:
         if texto[i] == "ANS":
-            texto[i]= str(ANS)
+            texto[i]= str(ans)
         if texto[i+1] == "ANS":
-            texto[i+1]= str(ANS)
+            texto[i+1]= str(ans)
         if texto[i] == "*":
             z = int(texto[i-1])*int(texto[i+1])
             texto[i+1]= str(z)
@@ -52,14 +31,13 @@ def resolver_prioridad_1(texto): #resuelve operaciones "*" y "//" en texto
         i += 1
     return texto
 
-
 def resolver_prioridad_2(texto): #resuelve operaciones "+" y "-" en texto 
     i = 0
     while texto[i] != texto[-1]:
         if texto[i] == "ANS":
-            texto[i]= str(ANS)
+            texto[i]= str(ans)
         if texto[i+1] == "ANS":
-            texto[i+1]= str(ANS)
+            texto[i+1]= str(ans)
         if texto[i] == "+":
             z = int(texto[i-1])+int(texto[i+1])
             texto[i+1]= str(z)
@@ -100,26 +78,24 @@ def validacion_operacion(texto): #llega sin ""
 
 def revision_errores(text):
     text = re.sub(r'\s+', '', text) #elimina espacios
-    retorno = True
+    #retorno = True
     contador=0
     for i in text:
         if i == "(":
             contador +=1
-        if i == ")":
+        elif i == ")":
             contador -=1
         if contador <0:
-            retorno = False
+            return False
     if contador != 0:
-        retorno = False
-    # if len(re.findall("\(", text)) != len(re.findall("\)", text)):
-    #     retorno = False
+        return False
     if len(re.findall("\/0", text)) != 0:
-        retorno = False
+        return False
     if validacion_operacion(text) == False:
-        retorno = False
-    if len(re.findall(r'[0-9]+\(', text)) != 0:
-        retorno = False
-    return retorno
+        return False
+    if (len(re.findall(r'[0-9]+\(', text)) != 0) or (len(re.findall(r'\([0-9]*\)', text)) != 0):
+        return False
+    return True
 
 def resolver_problema(text):
     cupon_1 = re.compile(r'CUPON\(\s*[0-9]+\s*\)')
@@ -143,12 +119,10 @@ def resolver_problema(text):
             text = text.replace(text[inicio:fin] ,str(numero_x))
 
     r = r'\(( *([0-9]+|ANS) *(\+|\-|\*|\//) *([0-9]+|ANS) *( *(\+|\-|\*|\//) *([0-9]+|ANS) *)?)+\)'
-    #o = 0
     n_texto = text
     contador = 0
     i = 0
     j = -1
-    temp = len(re.findall(r'\(',text))
     while contador<len(re.findall(r'\(',text)):
 
         coincidencias = re.finditer(r, n_texto)
@@ -158,7 +132,6 @@ def resolver_problema(text):
             inicio = inicio_fin[j][0]
             fin = inicio_fin[j][1]
             y = str(resolver_problema(n_texto[inicio+1:fin-1])) + " "
-            #o = o - len(y)
             lista_caracteres = list(n_texto)
             lista_caracteres[inicio:fin + 1] = y
             n_texto = "".join(lista_caracteres)
@@ -168,66 +141,55 @@ def resolver_problema(text):
         i = 0
         j = -1
         n_texto = n_texto
-        
     text = n_texto
+
+    # text = text.strip()
+    # patron = r'(\+|\-|\*|\//)'
+    # operaciones = re.split(patron, text)
+    # text = [elemento.strip() for elemento in operaciones if elemento.strip() != '']
+
     text = text.strip().split()
-
-    #resolver ()
-
-    text = resolver_prioridad_1(text) #text llega .split() y sin "(" ")"
+    text = resolver_prioridad_1(text)
     text = resolver_prioridad_2(text)
     resultado = int(text[0])
     if resultado < 0:
         resultado = 0
     return resultado
 
-problemas = open("problemas (EJEMPLO).txt","r") #cambiar nombre de archivo
+
+def resolver_bloque(lista_problemas,archivo):
+    flag = True
+    lineas_error = []
+    for w in lista_problemas: # se revisa si hay errores
+            if revision_errores(w) == False:
+                flag = False
+                lineas_error.append(w)
+    if flag==True:
+        for w in lista_problemas:
+            solucion = resolver_problema(w)
+            global ans
+            ans = solucion
+            archivo.write(str(w)+" = "+ str(solucion)+"\n")
+        archivo.write("\n")
+    else: #flag == False
+        for w in lista_problemas:
+            if w in lineas_error:
+                archivo.write(str(w)+" = "+ "Error"+"\n")
+            else:
+                archivo.write(str(w)+" = "+ "Sin resolver"+"\n")
+        archivo.write("\n")
+ans = 0
+
+lista_problemas = []
+problemas = open("problemas.txt","r") #cambiar nombre de archivo
 desarrollo = open("desarrollos.txt","w")
 for contenido in problemas:
     lista_problemas.append(contenido.strip())
     if contenido == "\n":
-        lista_problemas.pop() #eliminar '' final
-        for w in lista_problemas: # se revisa si hay errores
-            if revision_errores(w) == False:
-                flag = False
-                lineas_error.append(w)
-        if flag==True:
-            for w in lista_problemas:
-                solucion = resolver_problema(w)
-                ANS = solucion
-                desarrollo.write(str(w)+" = "+ str(solucion)+"\n")
-            lista_problemas = []
-            desarrollo.write("\n")
-        else: #flag == False
-            for w in lista_problemas:
-                if w in lineas_error:
-                    desarrollo.write(str(w)+" = "+ "Error"+"\n")
-                else:
-                    desarrollo.write(str(w)+" = "+ "Sin resolver"+"\n")
-            lista_problemas = []
-            desarrollo.write("\n")
-            flag = True
-            lineas_error = []
-
-for w in lista_problemas: # se revisa si hay errores
-    if revision_errores(w) == False:
-        flag = False
-        lineas_error = w
-if flag==True:
-    for w in lista_problemas:
-        solucion = resolver_problema(w)
-        ANS = solucion
-        desarrollo.write(str(w)+" = "+ str(solucion)+"\n")
-    lista_problemas = []
-else: #flag == False
-    for w in lista_problemas:
-        if w == lineas_error:
-            desarrollo.write(str(w)+" = "+ "Error"+"\n")
-        else:
-            desarrollo.write(str(w)+" = "+ "Sin resolver"+"\n")
-    lista_problemas = []
-    flag = True
-    lineas_error = ""
+        lista_problemas.pop()
+        resolver_bloque(lista_problemas,desarrollo)
+        lista_problemas = []
+resolver_bloque(lista_problemas,desarrollo)
 
 problemas.close()
 desarrollo.close()
