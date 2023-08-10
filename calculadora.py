@@ -78,7 +78,6 @@ def validacion_operacion(texto): #llega sin ""
 
 def revision_errores(text):
     text = re.sub(r'\s+', '', text) #elimina espacios
-    #retorno = True
     contador=0
     for i in text:
         if i == "(":
@@ -93,7 +92,8 @@ def revision_errores(text):
         return False
     if validacion_operacion(text) == False:
         return False
-    if (len(re.findall(r'[0-9]+\(', text)) != 0) or (len(re.findall(r'\([0-9]*\)', text)) != 0):
+    temp = re.findall(r'(\+|\-|\*|\//|CUPON)\(', text) ##
+    if (len(re.findall(r'[0-9]+\(|\)[0-9]+', text)) != 0):
         return False
     return True
 
@@ -133,7 +133,7 @@ def resolver_problema(text):
             fin = inicio_fin[j][1]
             y = str(resolver_problema(n_texto[inicio+1:fin-1])) + " "
             lista_caracteres = list(n_texto)
-            lista_caracteres[inicio:fin + 1] = y
+            lista_caracteres[inicio:fin] = y
             n_texto = "".join(lista_caracteres)
             j -=1
             i +=1
@@ -143,12 +143,12 @@ def resolver_problema(text):
         n_texto = n_texto
     text = n_texto
 
-    # text = text.strip()
-    # patron = r'(\+|\-|\*|\//)'
-    # operaciones = re.split(patron, text)
-    # text = [elemento.strip() for elemento in operaciones if elemento.strip() != '']
+    text = text.strip()
+    patron = r'( *\+ *| *\- *| *\* *| *\// *)'
+    operaciones = re.split(patron, text)
+    text = [elemento.strip() for elemento in operaciones if elemento.strip() != '']
 
-    text = text.strip().split()
+    #text = text.strip().split()
     text = resolver_prioridad_1(text)
     text = resolver_prioridad_2(text)
     resultado = int(text[0])
