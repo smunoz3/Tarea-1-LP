@@ -92,8 +92,12 @@ def revision_errores(text):
         return False
     if validacion_operacion(text) == False:
         return False
-    temp = re.findall(r'(\+|\-|\*|\//|CUPON)\(', text) ##
-    if (len(re.findall(r'[0-9]+\(|\)[0-9]+', text)) != 0):
+    #temp = re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS) *\( *[0-9]+ *\)', text) ##¨
+    if (len(re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS) *\( *[0-9]+ *\)', text)) != 0):
+        return False
+    if (len(re.findall(r'CUPON\( *CUPON\(',text))!=0): #detecta CUPON(CUPON
+        return False
+    if (len(re.findall(r'^(\+|\-|\*|\//) *[0-9]+',text))) !=0:
         return False
     return True
 
