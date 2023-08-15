@@ -1,6 +1,13 @@
 import re
 
 def list_to_str(lista):
+    '''
+    ***
+    * lista : Tipo lista
+    ***
+    Toma una lista y la convierte en string.
+    Retorna un string
+    '''
     string = ""
     i = 0
     while lista[i] != lista[-1]:
@@ -9,8 +16,15 @@ def list_to_str(lista):
     string=string + lista[i]
     return string
 
-def resolver_prioridad_1(texto): #resuelve operaciones "*" y "//" en texto 
-    i = 0   #texto llega .split()
+def resolver_prioridad_1(texto):
+    '''
+    ***
+    * texto : Tipo lista
+    ***
+    Toma una lista la recorre y va resolviendo las opereraciones de producto y division
+    Retorna una lista
+    '''
+    i = 0 
     while texto[i] != texto[-1]:
         if texto[i] == "ANS":
             texto[i]= str(ans)
@@ -31,7 +45,14 @@ def resolver_prioridad_1(texto): #resuelve operaciones "*" y "//" en texto
         i += 1
     return texto
 
-def resolver_prioridad_2(texto): #resuelve operaciones "+" y "-" en texto 
+def resolver_prioridad_2(texto):
+    '''
+    ***
+    * texto : Tipo lista
+    ***
+    Toma una lista la recorre y va resolviendo las opereraciones de suma y resta
+    Retorna una lista
+    '''
     i = 0
     while texto[i] != texto[-1]:
         if texto[i] == "ANS":
@@ -54,15 +75,36 @@ def resolver_prioridad_2(texto): #resuelve operaciones "+" y "-" en texto
     return texto
 
 def Cupon_simple(x):
+    '''
+    ***
+    * x : Tipo int
+    ***
+    Recibe un numero retorna su 20%
+    Retorna un int
+    '''
     s = int(x) * 0.2
     return int(s)
 
 def Cupon_doble(x,y):
+    '''
+    ***
+    * x : Tipo int
+    * y : Tipo int
+    ***
+    Recibe un numero retorna su y%
+    Retorna un int
+    '''
     z = float(y) / 100.0
     s = int(x) * z
     return int(s)
 
-def validacion_operacion(texto): #llega sin ""
+def validacion_operacion(texto):
+    '''
+    ***
+    * texto : 
+    ***
+    describe la funcion
+    '''
     retorno = True
     operaciones = r'\+|\-|\*|\//'
     valido_1 = ['0','1','2','3','4','5','6','7','8','9','S',')']
@@ -77,7 +119,13 @@ def validacion_operacion(texto): #llega sin ""
     return retorno
 
 def revision_errores(text):
-    text = re.sub(r'\s+', '', text) #elimina espacios
+    '''
+    ***
+    * text : 
+    ***
+    describe la funcion
+    '''
+    text = re.sub(r'\s+', '', text)
     contador=0
     for i in text:
         if i == "(":
@@ -92,16 +140,31 @@ def revision_errores(text):
         return False
     if validacion_operacion(text) == False:
         return False
-    #temp = re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS) *\( *[0-9]+ *\)', text) ##¨
-    if (len(re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS) *\( *[0-9]+ *\)', text)) != 0):
+    temp = re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS )\([0-9]+\)', text)
+    if (len(re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS)\([0-9]+\)', text)) != 0):
         return False
-    if (len(re.findall(r'CUPON\( *CUPON\(',text))!=0): #detecta CUPON(CUPON
+    if (len(re.findall(r'(CUPON\(CUPON\()|(CUPON\(\))|(CUPON\([0-9]+,\))',text))!=0): #detecta CUPON(CUPON y CUPON(  )
         return False
-    if (len(re.findall(r'^(\+|\-|\*|\//) *[0-9]+',text))) !=0:
+    if (len(re.findall(r'^(\+|\-|\*|\//)[0-9]+',text))) !=0:#partir con operaciones
         return False
+    #temp2 = r'[^\bANS\b]'
+    #r = re.findall(r'[^\bANS\b]',text)
+    if (len(re.findall(r'[^(\d|\+|\-|\*|\//|ANS|CUPON|CUPON\(\d,\d)]',text))!=0):
+        return False
+    if (len(re.findall(r'CUPON\(\d(\+|\-|\*|\//)',text)))!=0: #operaciones dentro de parencis
+        return False
+    if (len(re.findall(r'ANS'))!=0):
+        if len(re.findall(r'[^\bANS\b]',text))!=0:
+            return False
     return True
 
 def resolver_problema(text):
+    '''
+    ***
+    * text : 
+    ***
+    describe la funcion
+    '''
     cupon_1 = re.compile(r'CUPON\(\s*[0-9]+\s*\)')
     resultados_1 = cupon_1.findall(text)
     cupon_2 = re.compile(r'CUPON\(\s*[0-9]+\s*\,\s*[0-9]+\s*\)')
@@ -121,17 +184,14 @@ def resolver_problema(text):
             y = text[inicio+coma.start()+1:fin-1]
             numero_x = Cupon_doble(int(x),int(y))
             text = text.replace(text[inicio:fin] ,str(numero_x))
-
     r = r'\(( *([0-9]+|ANS) *(\+|\-|\*|\//) *([0-9]+|ANS) *( *(\+|\-|\*|\//) *([0-9]+|ANS) *)?)+\)'
     n_texto = text
     contador = 0
     i = 0
     j = -1
     while contador<len(re.findall(r'\(',text)):
-
         coincidencias = re.finditer(r, n_texto)
         inicio_fin = [(coincidencia.start(), coincidencia.end()) for coincidencia in coincidencias]
-
         while i < len(inicio_fin):
             inicio = inicio_fin[j][0]
             fin = inicio_fin[j][1]
@@ -146,13 +206,10 @@ def resolver_problema(text):
         j = -1
         n_texto = n_texto
     text = n_texto
-
     text = text.strip()
     patron = r'( *\+ *| *\- *| *\* *| *\// *)'
     operaciones = re.split(patron, text)
     text = [elemento.strip() for elemento in operaciones if elemento.strip() != '']
-
-    #text = text.strip().split()
     text = resolver_prioridad_1(text)
     text = resolver_prioridad_2(text)
     resultado = int(text[0])
@@ -160,11 +217,16 @@ def resolver_problema(text):
         resultado = 0
     return resultado
 
-
 def resolver_bloque(lista_problemas,archivo):
+    '''
+    ***
+    * texto : 
+    ***
+    describe la funcion
+    '''
     flag = True
     lineas_error = []
-    for w in lista_problemas: # se revisa si hay errores
+    for w in lista_problemas:
             if revision_errores(w) == False:
                 flag = False
                 lineas_error.append(w)
@@ -175,15 +237,15 @@ def resolver_bloque(lista_problemas,archivo):
             ans = solucion
             archivo.write(str(w)+" = "+ str(solucion)+"\n")
         archivo.write("\n")
-    else: #flag == False
+    else:
         for w in lista_problemas:
             if w in lineas_error:
                 archivo.write(str(w)+" = "+ "Error"+"\n")
             else:
-                archivo.write(str(w)+" = "+ "Sin resolver"+"\n")
+                archivo.write(str(w)+" = "+ "Sin Resolver"+"\n")
         archivo.write("\n")
-ans = 0
 
+ans = 0
 lista_problemas = []
 problemas = open("problemas.txt","r") #cambiar nombre de archivo
 desarrollo = open("desarrollos.txt","w")
@@ -194,6 +256,5 @@ for contenido in problemas:
         resolver_bloque(lista_problemas,desarrollo)
         lista_problemas = []
 resolver_bloque(lista_problemas,desarrollo)
-
 problemas.close()
 desarrollo.close()
