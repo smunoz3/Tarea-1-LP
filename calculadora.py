@@ -5,7 +5,7 @@ def list_to_str(lista):
     ***
     * lista : Tipo lista
     ***
-    Toma una lista y la convierte en string.
+    Recibe una lista y la convierte en string.
     Retorna un string
     '''
     string = ""
@@ -21,8 +21,9 @@ def resolver_prioridad_1(texto):
     ***
     * texto : Tipo lista
     ***
-    Toma una lista la recorre y va resolviendo las opereraciones de producto y division
-    Retorna una lista
+    Recibe una lista, la recorre de izquierda a derecha 
+    y va resolviendo las opereraciones de producto y division
+    Retorna una lista sin producto ni division
     '''
     i = 0 
     while texto[i] != texto[-1]:
@@ -50,8 +51,9 @@ def resolver_prioridad_2(texto):
     ***
     * texto : Tipo lista
     ***
-    Toma una lista la recorre y va resolviendo las opereraciones de suma y resta
-    Retorna una lista
+    Recibe una lista la recorre de izquierda a derecha
+    y va resolviendo las opereraciones de suma y resta
+    Retorna una lista sin suma ni resta
     '''
     i = 0
     while texto[i] != texto[-1]:
@@ -79,8 +81,8 @@ def Cupon_simple(x):
     ***
     * x : Tipo int
     ***
-    Recibe un numero retorna su 20%
-    Retorna un int
+    Recibe un numero y obtiene su 20%
+    Retorna un int, el 20% de x
     '''
     s = int(x) * 0.2
     return int(s)
@@ -91,39 +93,56 @@ def Cupon_doble(x,y):
     * x : Tipo int
     * y : Tipo int
     ***
-    Recibe un numero retorna su y%
-    Retorna un int
+    Recibe dos numeros y al primero le obtiene el % del segundo
+    Retorna un int, el y% de x
     '''
     z = float(y) / 100.0
     s = int(x) * z
     return int(s)
 
-def validacion_operacion(texto):
+def validacion_operacion(text):
     '''
     ***
-    * texto : 
+    * text : Tipo string
     ***
-    describe la funcion
+    Recibe un string y revisa si antes y despues de las operaciones hay caracteres validos
+    Retorna un bool, True si es valido y False si no es valido
     '''
     retorno = True
     operaciones = r'\+|\-|\*|\//'
     valido_1 = ['0','1','2','3','4','5','6','7','8','9','S',')']
     valido_2 = ['0','1','2','3','4','5','6','7','8','9','A','C','(']
-    matches = [match.start() for match in re.finditer(operaciones, texto)]
+    matches = [match.start() for match in re.finditer(operaciones, text)]
     for i in matches:
-        if texto[i] == "/":
-            if not ((texto[i-1] in valido_1) and (texto[i+2] in valido_2)):
+        if text[i] == "/":
+            if not ((text[i-1] in valido_1) and (text[i+2] in valido_2)):
                 retorno = False
-        elif not ((texto[i-1] in valido_1) and (texto[i+1] in valido_2)):
+        elif not ((text[i-1] in valido_1) and (text[i+1] in valido_2)):
             retorno = False
     return retorno
+
+def validacion_cupones(text):
+    '''
+    ***
+    * text : Tipo string
+    ***
+    Recibe un string y revisa la escritura de los cupones esta bien escrita
+    Retorna un bool, True si es valido y False si no es valido
+    '''
+    if (len(re.findall(r'(CUPON\(CUPON\()|(CUPON\(\))|(CUPON\(\d,\))',text))!=0):
+        return False
+    if (len(re.findall(r'CUPON\(\d(\+|\-|\*|\//)',text)))!=0:
+        return False
+    return True
 
 def revision_errores(text):
     '''
     ***
-    * text : 
+    * text : Tipo string
     ***
-    describe la funcion
+    Recibe un string va validando si hay cualquier tipo de error mediante expreciones regulares
+    tambien llama a validacion_operacion y a validacion_cupones 
+    Retorna un bool, True si no hay errores y False si hay errores
     '''
     text = re.sub(r'\s+', '', text)
     contador=0
@@ -140,30 +159,25 @@ def revision_errores(text):
         return False
     if validacion_operacion(text) == False:
         return False
-    temp = re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS )\([0-9]+\)', text)
-    if (len(re.findall(r'[0-9]+\(|\)[0-9]+|(\+|\-|\*|\//|[0-9]+|ANS)\([0-9]+\)', text)) != 0):
+    if validacion_cupones(text) == False:
         return False
-    if (len(re.findall(r'(CUPON\(CUPON\()|(CUPON\(\))|(CUPON\([0-9]+,\))',text))!=0): #detecta CUPON(CUPON y CUPON(  )
+    if (len(re.findall(r'\d\(|\)\d|(\+|\-|\*|\//|\d|ANS)\(\d\)', text)) != 0):
         return False
-    if (len(re.findall(r'^(\+|\-|\*|\//)[0-9]+',text))) !=0:#partir con operaciones
+    if (len(re.findall(r'^(\+|\-|\*|\//)\d',text))) !=0:
         return False
-    #temp2 = r'[^\bANS\b]'
-    #r = re.findall(r'[^\bANS\b]',text)
-    if (len(re.findall(r'[^(\d|\+|\-|\*|\//|ANS|CUPON|CUPON\(\d,\d)]',text))!=0):
+    if (len(re.findall(r'[^(\d|\+|\-|\*|\//|ANS|CUPON|CUPON\(\d,\d)|\bANS\b]]',text))!=0):
         return False
-    if (len(re.findall(r'CUPON\(\d(\+|\-|\*|\//)',text)))!=0: #operaciones dentro de parencis
-        return False
-    if (len(re.findall(r'ANS'))!=0):
-        if len(re.findall(r'[^\bANS\b]',text))!=0:
-            return False
     return True
 
 def resolver_problema(text):
     '''
     ***
-    * text : 
+    * text : Tipo string
     ***
-    describe la funcion
+    Recibe un string, previamente validado, y va resolviendo las operaciones en orden
+    primero los CUPONES, despues los () de manera recursiva, 
+    luego llama a resolver el producto y division y finalmente llama a resolver suma y resta
+    Retorna un int, el resultado de las operaciones, 0 si es menor que 0
     '''
     cupon_1 = re.compile(r'CUPON\(\s*[0-9]+\s*\)')
     resultados_1 = cupon_1.findall(text)
@@ -220,9 +234,13 @@ def resolver_problema(text):
 def resolver_bloque(lista_problemas,archivo):
     '''
     ***
-    * texto : 
+    * lista_problemas : Tipo lista
+    * archivo : Tipo archivo
     ***
-    describe la funcion
+    Recibe una lista donde cada indice es una linea de operaciones, primero llama a revision_errores 
+    para cada indice, si esta bien llama a resolver_problema y escribe en archivo los resultados,
+    si estan mal no resuelve y escribe en el archivo los errores
+    Retorna nada
     '''
     flag = True
     lineas_error = []
@@ -247,7 +265,7 @@ def resolver_bloque(lista_problemas,archivo):
 
 ans = 0
 lista_problemas = []
-problemas = open("problemas.txt","r") #cambiar nombre de archivo
+problemas = open("problemas.txt","r")
 desarrollo = open("desarrollos.txt","w")
 for contenido in problemas:
     lista_problemas.append(contenido.strip())
