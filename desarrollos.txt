@@ -1,2 +1,2 @@
-CUPON(1,CUPON(1)) = Error
+1+1 = 1
 

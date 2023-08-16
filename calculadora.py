@@ -129,9 +129,9 @@ def validacion_cupones(text):
     Recibe un string y revisa la escritura de los cupones esta bien escrita
     Retorna un bool, True si es valido y False si no es valido
     '''
-    if (len(re.findall(r'(CUPON\(CUPON\()|(CUPON\(\))|(CUPON\(\d,\))|(CUPON\(\d\,CUPON\()',text))!=0):
+    if (len(re.findall(r'(CUPON\(CUPON\()|(CUPON\(\))|(CUPON\((\d|ANS),\))|(CUPON\((\d|ANS)\,CUPON\()',text))!=0):
         return False
-    if (len(re.findall(r'CUPON\(\d(\+|\-|\*|\//)',text)))!=0:
+    if (len(re.findall(r'CUPON\((\d|ANS)(\+|\-|\*|\//)',text)))!=0:
         return False
     return True
 
