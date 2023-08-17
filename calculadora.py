@@ -128,7 +128,7 @@ def validacion_cupones(text):
     
     return True
 
-def revision_errores(text):
+def revision_errores(text,ans_temp):
     '''
     ***
     * text : Tipo string
@@ -137,6 +137,7 @@ def revision_errores(text):
     tambien llama a validacion_operacion y a validacion_cupones 
     Retorna un bool, True si no hay errores y False si hay errores
     '''
+    text = text.replace("ANS",str(ans_temp))
     text = re.sub(r'\s+', '', text)
     contador=0
 
@@ -156,13 +157,17 @@ def revision_errores(text):
         return False
     if (len(re.findall(r'^(\+|\-|\*|\//)\d',text))) !=0:
         return False
-    if (len(re.findall(r'[^(\d|\+|\-|\*|\//|ANS|CUPON|CUPON\(\d,\d)|\bANS\b]]',text))!=0):
-        return False
+    
     if validacion_operacion(text) == False:
         return False
     if validacion_cupones(text) == False:
         return False
     
+    text = re.sub(r'(CUPON\([0-9]+\))', str(1), text)
+    text = re.sub(r'CUPON\([0-9]+,[0-9]+\)', str(2), text)
+    if (len(re.findall(r'[^(\d|\+|\-|\*|\//)]',text))!=0):
+        return False
+
     return True
 
 def resolver_cupon(text):
@@ -197,7 +202,7 @@ def resolver_cupon(text):
 
     return text
 
-def resolver_problema(text):
+def resolver_problema(text,ans):
     '''
     ***
     * text : Tipo string
@@ -222,7 +227,7 @@ def resolver_problema(text):
         while i < len(inicio_fin):
             inicio = inicio_fin[j][0]
             fin = inicio_fin[j][1]
-            y = str(resolver_problema(n_texto[inicio+1:fin-1])) + " "
+            y = str(resolver_problema(n_texto[inicio+1:fin-1],ans)) + " "
             lista_caracteres = list(n_texto)
             lista_caracteres[inicio:fin] = y
             n_texto = "".join(lista_caracteres)
@@ -252,22 +257,29 @@ def resolver_bloque(lista_problemas,archivo):
     * lista_problemas : Tipo lista
     * archivo : Tipo archivo
     ***
-    Recibe una lista donde cada indice es una linea de operaciones, primero llama a revision_errores 
-    para cada indice, si esta bien llama a resolver_problema y escribe en archivo los resultados,
-    si estan mal no resuelve y escribe en el archivo los errores
+    Recibe una lista donde cada indice es una linea de operaciones, primero se ve si tiene errores
+    por medio de la funcion revision_errores, si esta bien llama a resolver_problema 
+    y escribe en archivo los resultados, si estan mal no resuelve y escribe en el archivo los errores
     Retorna nada
     '''
     flag = True
     lineas_error = []
+    ans_temp = 0
 
     for w in lista_problemas:
-            if revision_errores(w) == False:
+            if revision_errores(w,ans_temp) == False:
                 flag = False
+            elif revision_errores(w,ans_temp)==True:
+                ans_temp = resolver_problema(w,ans_temp)
+    if flag == False:
+        for w in lista_problemas:
+            if revision_errores(w,0) == False:
                 lineas_error.append(w)
+
     if flag==True:
         for w in lista_problemas:
-            solucion = resolver_problema(w)
             global ans
+            solucion = resolver_problema(w,ans)
             ans = solucion
             archivo.write(str(w)+" = "+ str(solucion)+"\n")
         archivo.write("\n")
@@ -290,6 +302,7 @@ for contenido in problemas:
         lista_problemas.pop()
         resolver_bloque(lista_problemas,desarrollo)
         lista_problemas = []
+        ans = 0
 resolver_bloque(lista_problemas,desarrollo)
 
 problemas.close()

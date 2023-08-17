@@ -4,7 +4,7 @@ ANS // 15 = 12396
 
 ANS +    7 * 4 - 1 = Sin Resolver
 27 // 0 = Error
-3 + CUPON(10, 30) = Sin Resolver
+3 + 5 = Sin Resolver
 
 350 * 8 - (1500 - CUPON(1500)) = 1600
 ANS * ANS // 5 = 512000
