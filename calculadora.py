@@ -128,16 +128,18 @@ def validacion_cupones(text):
     
     return True
 
-def revision_errores(text,ans_temp):
+def revision_errores(text,ans):
     '''
     ***
     * text : Tipo string
+    * ans : Tipo int
     ***
-    Recibe un string va validando si hay cualquier tipo de error mediante expreciones regulares
+    Recibe string, que en cada ANS se reemplza por el int ans,
+    y se va validando mediante expreciones regulares,
     tambien llama a validacion_operacion y a validacion_cupones 
     Retorna un bool, True si no hay errores y False si hay errores
     '''
-    text = text.replace("ANS",str(ans_temp))
+    text = text.replace("ANS",str(ans))
     text = re.sub(r'\s+', '', text)
     contador=0
 
@@ -206,8 +208,9 @@ def resolver_problema(text,ans):
     '''
     ***
     * text : Tipo string
+    * ans : Tipo int
     ***
-    Recibe un string, previamente validado, y va resolviendo las operaciones en orden
+    Recibe string, que en cada ANS se reemplza por el int ans, previamente validado se va resolviendo las operaciones en orden
     primero los CUPONES, despues los () de manera recursiva, 
     luego llama a resolver el producto y division y finalmente llama a resolver suma y resta
     Retorna un int, el resultado de las operaciones, 0 si es menor que 0
