@@ -139,6 +139,8 @@ def revision_errores(text,ans):
     tambien llama a validacion_operacion y a validacion_cupones 
     Retorna un bool, True si no hay errores y False si hay errores
     '''
+    if len(re.findall(r'ANS *CUPON',text)) != 0:
+        return False
     text = text.replace("ANS",str(ans))
     text = re.sub(r'\s+', '', text)
     contador=0
